@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チャット</title>
+</head>
+<body>
+  <form id="form">
+   <input type="text" id="send_msg">
+   <input type="submit">
+ </form>
+ <div id="count"><%= @count + 1%></div>
+ <ul id="msgs"></ul>
+<script>
+
+  window.onload = function(){
+    var msgbox = document.getElementById("msgs");
+    var countBox = document.getElementById("count");
+    var form = document.getElementById("form");
+    var send_msg = document.getElementById("send_msg");
+    var ws = new WebSocket('ws://' + window.location.host + "/websocket/chat");
+    var count = new WebSocket('ws://' + window.location.host + "/websocket/count");
+
+    ws.onopen = function() { console.log("connection opened") }
+    ws.onclose = function() { console.log("connection closed") }
+    ws.onmessage = function(m) {
+      var li = document.createElement("li");
+      li.textContent = JSON.parse(m.data).msg
+      msgbox.insertBefore(li, msgbox.firstChild);
+    }
+
+    send_msg.onclick = function(){
+      send_msg.value = ""; 
+    }
+
+    form.onsubmit = function(){
+      ws.send(send_msg.value);
+      send_msg.value = "";
+      return false;
+    }
+
+    count.onopen = function() { console.log("count connection opened") };
+    count.onclose = function() { console.log("count connection closed") };
+    count.onmessage = function(m) {
+      countBox.innerHTML =m.data
+      console.log(m.data)
+    }
+    setTimeout(function(){
+      count.send('1');
+    },1000)
+  };
+  
+
+</script>
+</body>
+</html>
